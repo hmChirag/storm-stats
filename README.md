@@ -1,5 +1,17 @@
 
-## Project info
+# Storm Stats
+
+A modern, responsive weather statistics application that provides detailed weather information for cities worldwide. Get current weather conditions, hourly forecasts, temperature trends, and manage your favorite locations with ease.
+
+## Features
+
+- **City Search**: Search for any city and view real-time weather data
+- **Current Weather**: Detailed weather information including temperature, humidity, wind speed, and more
+- **Hourly Forecast**: 24-hour weather predictions with interactive charts
+- **Temperature Charts**: Visual representation of temperature trends
+- **Favorites Management**: Save and manage your favorite cities for quick access
+- **Settings Panel**: Customize your experience with various settings
+- **Responsive Design**: Optimized for desktop and mobile devices
 
 ## How can I edit this code?
 
@@ -21,7 +33,7 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+npm install
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
@@ -50,15 +62,8 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b82c8e4b-b691-49c4-858d-75eb913a9fc1) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Redux Toolkit
+- React Query
+- Axios
+- Recharts
+- React Router
