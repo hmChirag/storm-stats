@@ -85,6 +85,15 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      backgroundImage: {
+        'gradient-sky': 'var(--gradient-sky)',
+        'gradient-clear': 'var(--gradient-clear)',
+        'gradient-cloudy': 'var(--gradient-cloudy)',
+      },
+      boxShadow: {
+        'glass': 'var(--shadow-glass)',
+        'card-custom': 'var(--shadow-card)',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
