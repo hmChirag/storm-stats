@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,38 +6,85 @@ import { useAppDispatch } from '@/store/hooks';
 import { addFavorite } from '@/store/favoritesSlice';
 import { toast } from 'sonner';
 
-export const SearchBar = () => {
+interface Suggestion {
+  name: string;
+  state?: string;
+  country?: string;
+  lat: number;
+  lon: number;
+  displayName: string;
+}
+
+const CitySearch = () => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const dispatch = useAppDispatch();
+  const abortRef = useRef<AbortController | null>(null);
 
-  const popularCities = [
-    'London', 'New York', 'Tokyo', 'Paris', 'Sydney', 
-    'Dubai', 'Singapore', 'Mumbai', 'Toronto', 'Berlin',
-    'Madrid', 'Rome', 'Amsterdam', 'Barcelona', 'Seoul'
-  ];
+  const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY as string;
+  const GEOCODE_URL = 'https://api.openweathermap.org/geo/1.0/direct';
 
   useEffect(() => {
-    if (query.length > 0) {
-      const filtered = popularCities.filter(city => 
-        city.toLowerCase().includes(query.toLowerCase())
-      );
-      setSuggestions(filtered.slice(0, 5));
-      setShowSuggestions(true);
-    } else {
+    if (!API_KEY) {
+      console.warn('VITE_OPENWEATHER_API_KEY not set. Autocomplete disabled.');
       setSuggestions([]);
       setShowSuggestions(false);
+      return;
     }
-  }, [query]);
 
-  const handleSearch = (city: string) => {
-    if (city.trim()) {
-      dispatch(addFavorite(city));
-      toast.success(`Added ${city} to your favorites`);
-      setQuery('');
+    if (query.trim().length < 2) {
+      setSuggestions([]);
       setShowSuggestions(false);
+      return;
     }
+
+    const timer = setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const url = `${GEOCODE_URL}?q=${encodeURIComponent(query)}&limit=5&appid=${API_KEY}`;
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Geocode API ${res.status}`);
+        const data = (await res.json()) as any[];
+        const mapped = data.map((d) => {
+          const displayName = d.state
+            ? `${d.name}, ${d.state}, ${d.country}`
+            : `${d.name}, ${d.country}`;
+          return {
+            name: d.name,
+            state: d.state,
+            country: d.country,
+            lat: d.lat,
+            lon: d.lon,
+            displayName,
+          } as Suggestion;
+        });
+        setSuggestions(mapped);
+        setShowSuggestions(mapped.length > 0);
+      } catch (err) {
+        if ((err as any).name === 'AbortError') return;
+        console.error('Geocode error', err);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [query, API_KEY]);
+
+  const handleSearch = (city: string | Suggestion) => {
+    const name = typeof city === 'string' ? city.trim() : city.displayName;
+    if (!name) return;
+    dispatch(addFavorite(name));
+    toast.success(`Added ${name} to your favorites`);
+    setQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,12 +114,12 @@ export const SearchBar = () => {
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
           {suggestions.map((city) => (
             <button
-              key={city}
+              key={`${city.lat}-${city.lon}`}
               onClick={() => handleSearch(city)}
               className="w-full px-4 py-3 text-left hover:bg-accent/10 transition-colors flex items-center gap-2"
             >
               <MapPin className="h-4 w-4 text-primary" />
-              <span className="text-foreground">{city}</span>
+              <span className="text-foreground">{city.displayName}</span>
             </button>
           ))}
         </div>
@@ -80,3 +127,5 @@ export const SearchBar = () => {
     </div>
   );
 };
+
+export default CitySearch;

@@ -1,7 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_KEY = '3aa8e6c05e4b3b47d8e2e1f69d8b8af7'; // OpenWeatherMap API key
+const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY as string;
+if (!API_KEY) {
+  throw new Error('Missing VITE_OPENWEATHER_API_KEY. Add it to .env at project root and restart the dev server.');
+}
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 export interface WeatherData {
